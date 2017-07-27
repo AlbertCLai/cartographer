@@ -1,0 +1,97 @@
+<html>
+<head>
+	<title>Cartographer</title>
+	<meta charset="UTF-8">
+	<meta name="description" content="Flowchart Visualization Tool for Space Config">
+	<meta name="keywords" content="cartographer, flowchart, plot, config">
+	<meta name="author" content="Albert C. Lai">
+  
+    <!-- Vendor Libraries -->
+    <script type="text/javascript" src="vendors/d3/d3.v3.min.js"></script>
+    <script type="text/javascript" src="vendors/jsyaml/js-yaml.min.js"></script>
+    <script type="text/javascript" src="vendors/dagre/dagre.min.js"></script>
+    <script type="text/javascript" src="vendors/markjs/mark.min.js"></script>
+
+    <!-- Space Elements -->
+    <script type="text/javascript" src="resources/js/placement.js"></script>
+    <script type="text/javascript" src="resources/js/page.js"></script>
+    <script type="text/javascript" src="resources/js/section.js"></script>
+    <script type="text/javascript" src="resources/js/umt.js"></script>
+    <script type="text/javascript" src="resources/js/feed.js"></script>
+
+    <!-- Flowchart Elements -->
+    <script type="text/javascript" src="resources/js/elementNode.js"></script>
+    <script type="text/javascript" src="resources/js/elementEdge.js"></script>
+    <script type="text/javascript" src="resources/js/experimentDictionary.js"></script>
+
+    <!-- Flowchart -->
+    <script type="text/javascript" src="resources/js/flowchart.js"></script>
+
+    <!-- Cartographer -->
+    <script type="text/javascript" src="resources/js/cartographer.js"></script>
+    
+    <!-- Composite CSS -->
+    <link rel="stylesheet" type="text/css" href="resources/css/cartographer.css">
+</head>
+
+<body onload="cart.loadResizers()">
+	<div id="console">
+	
+		<div id="plotPanel">
+
+			<div id="configDropZone" ondrop="cart.onDropHandler(event);" ondragover="cart.onDragOverHandler(event);">
+				<div class="center pad_tb">
+					Drag and Drop or ...
+			    	<button id="loadConfigBtn" onclick="cart.onLoadConfigBtnClick(event)">Choose Config File</button>
+			    </div>
+				<div id="filename" class="center pad_tb"></div>
+			    <input type="file" id="trueYamlInput" onchange="cart.loadYamlConfigAndUpdate(event)"/>
+			</div>
+	
+			<div class="zoneLabel">Select Endpoint</div>
+			<div>
+		    	<div id="elementIdSelectZone"></div>
+		    	<div class="btnGroup">
+		    		<button onclick="cart.plot()">Plot Selected Endpoint</button>
+		    		<button onclick="cart.centerPlot()">Center Plot</button>
+				    <button onclick="cart.clearPlot()">Clear Plot</button>
+				</div>
+			</div>
+			
+			<hr>
+
+			<div class="zoneLabel">Trace Options</div>
+			<div class="traceGroup">
+				<input id="useHover" type="checkbox" class="traceInput" checked>on Hover
+			    <input id="useClick" type="checkbox" class="traceInput">on Click
+			    <input id="useExperiment" type="checkbox" class="traceInput">use Experiment
+			</div>
+
+			<div class="zoneLabel">Experiment Parameters and Variants</div>
+		</div>
+
+		<div id="experimentPanel">
+	    	<div id="experimentParametersAndVariants"></div>
+			<div id="experimentPanelResizer"></div>
+		</div>
+
+	    <div id="yamlConfigPanel"></div>
+
+		<div id="consoleResizer"></div>
+
+	</div>
+	
+	<div id="flowchartStudio"></div>
+</body>
+
+<!-- Start Instance of Cartographer  -->
+
+<script type="text/javascript">
+	var cart = new Cartographer();
+</script>
+
+<!-- Sandbox for Testing new Scripts -->
+
+<script type="text/javascript"></script>
+
+</html>
