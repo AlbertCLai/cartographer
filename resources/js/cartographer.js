@@ -4,36 +4,68 @@
 
 var Cartographer = function () {
 
-	// Constants
-	const _const = {
-	    // Endpoint Element Id Selection
-	    showMeEverything: 'albertShowMeEverything',
+    // Constants
+    const _const = {
+        // Endpoint Element Id Selection
+        showMeEverything: 'albertShowMeEverything',
         // Mini Map
-		minimapPadding: 20,
-		minimapScale: 0.05
-	};
-	
-	// Variables to be set by _init 'constructor'
-	var _assetData = {
-			flowchart: null,
-			minimap: null
-		},
-		_markHighlighter,
+        minimapPadding: 20,
+        minimapScale: 0.05
+    };
+
+    // Variables to be set by _init 'constructor'
+    var _assetData = {
+            flowchart: null,
+            minimap: null
+        },
+        _markHighlighter,
         _zoom;
 
-	// Constructor for this Cartographer instance
-	var _init = function () {
-		// Placeholder for 'Mark' Highlighter
-		_markHighlighter = null;
+    // Constructor for this Cartographer instance
+    var _init = function () {
+        // Ready the html page calling the Cartographer
+        _readyPage();
+
+        // Placeholder for 'Mark' Highlighter
+        _markHighlighter = null;
         // Placeholder for Zoom
         _zoom = null;
-	};
+    };
 
-	// Generates a bracket based selector for 'id' attribute
-	var _generateAttrIdSelector = function (id) {
-		// This allows periods and to start with numbers
-		return '[id="' + id + '"]';
-	};
+    // Generates a bracket based selector for 'id' attribute
+    var _generateAttrIdSelector = function (id) {
+        // This allows periods and to start with numbers
+        return '[id="' + id + '"]';
+    };
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Readying Page Resizers & Event Listeners
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    var _readyPage = function () {
+        // Load all Resizers Event Listeners
+        document.body.addEventListener('load', _loadResizers());
+
+        // Load Drag and Drop Event Listeners
+        document.getElementById("configDropZone").addEventListener('drop', function (event) {
+            _onDropHandler(event);
+        });
+
+        document.getElementById("configDropZone").addEventListener('dragover', function (event) {
+            _onDragOverHandler(event);
+        });
+
+        // Load Config Event Listeners
+        document.getElementById("btnLoadConfig").addEventListener('click', _onLoadConfigBtnClick);
+        document.getElementById("trueYamlInput").addEventListener('change', function (event) {
+            _loadYamlConfigAndUpdate(event);
+        });
+
+        // Load Plot Event Listeners
+        document.getElementById("btnPlot").addEventListener('click', _plot);
+        document.getElementById("btnCenterPlot").addEventListener('click', _centerPlot);
+        document.getElementById("btnClearPlot").addEventListener('click', _clearPlot);
+    };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Console Panel Resizing & Associated Sizers
@@ -62,7 +94,7 @@ var Cartographer = function () {
                 if (_assetData.minimap !== null) {
                     _getMinimap().render();
                 }
-            })
+            });
 
         resizer.call(dragResize);
     };
@@ -96,7 +128,7 @@ var Cartographer = function () {
                 // Adjust containers
                 container.style('height', safe_y + 'px');
                 d3.select('#yamlConfigPanel').style('height', safeYamlPanelSize + 'px');
-            })
+            });
 
         resizer.call(dragResize);
     };
@@ -134,7 +166,7 @@ var Cartographer = function () {
     };
 
     // Loads all resizers
-    this.loadResizers = function () {
+    var _loadResizers = function () {
         _consoleResizer();
         _experimentPanelResizer();
         _onWindowResize();
@@ -173,17 +205,17 @@ var Cartographer = function () {
     };
 
     // Trigger hidden config file load button
-    this.onLoadConfigBtnClick = function (event) {
+    var _onLoadConfigBtnClick = function () {
         document.getElementById('trueYamlInput').click();
     };
 
     // Prevent default select and drag behavior
-    this.onDragOverHandler = function (event) {
+    var _onDragOverHandler = function (event) {
         event.preventDefault();
-    }
+    };
 
     // Load and Update Cartographer: On Yaml Config file drop
-    this.onDropHandler = function (event) {
+    var _onDropHandler = function (event) {
         // Let's not replace the page with what was dropped
         event.preventDefault();
 
@@ -212,10 +244,10 @@ var Cartographer = function () {
                 return;
             }
         }
-    }
+    };
 
     // Load and Update Cartographer: On Yaml Config file button input
-    this.loadYamlConfigAndUpdate = function (event) {
+    var _loadYamlConfigAndUpdate = function (event) {
         var file = event.target.files[0];
         if (!file) {
             return;
@@ -228,7 +260,7 @@ var Cartographer = function () {
 
         // Update filename that is displayed
         d3.select('#filename').text(file.name);
-    }
+    };
 
     // Clear all rendered DOM elements from the Cartographer
     var _clearCartographer = function () {
@@ -243,40 +275,40 @@ var Cartographer = function () {
     // Endpoint Selection
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	// Load Endpoint ElementId Candidate Options
-	var _loadEndpointElementIdSelectOptions = function () {
-		// Get all Endpoint Element Ids Grouped by elementType (Feeds, Umts, Sections, Placements)
-   		var elementIdCandidateGroups = _assetData.flowchart.getAllEndpointElementIdCandidatesGrouped();
+    // Load Endpoint ElementId Candidate Options
+    var _loadEndpointElementIdSelectOptions = function () {
+        // Get all Endpoint Element Ids Grouped by elementType (Feeds, Umts, Sections, Placements)
+        var elementIdCandidateGroups = _assetData.flowchart.getAllEndpointElementIdCandidatesGrouped();
 
-		// Target Endpoint ElementId Container
-		d3.select('#elementIdSelectZone').append('div').attr('id', 'elementIdSelect');
-		var endpointSelectContainer = d3.select('#elementIdSelect');
+        // Target Endpoint ElementId Container
+        d3.select('#elementIdSelectZone').append('div').attr('id', 'elementIdSelect');
+        var endpointSelectContainer = d3.select('#elementIdSelect');
 
-		// Append (select) and initialize
-		var select = endpointSelectContainer.append('select').attr('id', 'selectEndpoint');
-		
-		// Append default (option) to plot all possible endpoints
-		select.append('option')
-			.text('Show Me Everything (Default)')
-			.attr('value', _const.showMeEverything);
+        // Append (select) and initialize
+        var select = endpointSelectContainer.append('select').attr('id', 'selectEndpoint');
 
-		// Cycle through all grouped candidates and append available (options)
-		Object.keys(elementIdCandidateGroups).forEach(function (group) {
-			// If group is empty ... skip (optgroup)!
-			if (elementIdCandidateGroups[group].length == 0) {
-				return;
-			}
-			
-			// Append (optgroup) and init
-			var optGroup = select.append('optgroup').attr('label', group);
+        // Append default (option) to plot all possible endpoints
+        select.append('option')
+            .text('Show Me Everything (Default)')
+            .attr('value', _const.showMeEverything);
 
-			// Append (options) within its (optgroup)
+        // Cycle through all grouped candidates and append available (options)
+        Object.keys(elementIdCandidateGroups).forEach(function (group) {
+            // If group is empty ... skip (optgroup)!
+            if (elementIdCandidateGroups[group].length == 0) {
+                return;
+            }
 
-			var options = optGroup.selectAll('option')
-				.data(elementIdCandidateGroups[group])
-				.enter()
-				.append('option')
-				.text(function (d) {
+            // Append (optgroup) and init
+            var optGroup = select.append('optgroup').attr('label', group);
+
+            // Append (options) within its (optgroup)
+
+            var options = optGroup.selectAll('option')
+                .data(elementIdCandidateGroups[group])
+                .enter()
+                .append('option')
+                .text(function (d) {
                     switch (group) {
                         case 'Sections':
                             return d.startsWith('section--')
@@ -289,15 +321,15 @@ var Cartographer = function () {
                         default:
                             return d;
                     }
-				})
-				.attr('value', function (d) { return d; });
-		}, this);	
-	};
+                })
+                .attr('value', function (d) { return d; });
+        }, this);
+    };
 
     // Remove Endpoint ElementId Candidate Options
     var _clearEndpointElementIdSelectOptions = function () {
         d3.select('#elementIdSelect').remove();
-    }
+    };
 
     // Get the Endpoint ElementId selected or all
     var _getEndpointElementIdSelected = function () {
@@ -314,77 +346,77 @@ var Cartographer = function () {
     // Experiment Selection
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	// Load Experiment ElementNode variant selection options
-	var _loadExperimentNodesVariantOptions = function () {
-		// Get ExperimentsDictionary for this flowchart 
-		var experiments = _assetData.flowchart.getAllExperiments();
-	
-		// Get possible Experiment Scope Levels
-		var scopeLevels = experiments.getScopeLevels();
-		
-		// Target Experiment Variant Selection Container
-		d3.select('#experimentParametersAndVariants').append('div').attr('id', 'expOptions');
-		var experimentVariantContainer = d3.select('#expOptions'); 
+    // Load Experiment ElementNode variant selection options
+    var _loadExperimentNodesVariantOptions = function () {
+        // Get ExperimentsDictionary for this flowchart
+        var experiments = _assetData.flowchart.getAllExperiments();
 
-		// Cycle through all scope levels and display variants
-		scopeLevels.forEach(function (scope) {
-			// Get Experiments at target scope level
-			var scopeLevelExperiments = experiments.getAllExperimentScopeLevel(scope);
-			
-			// Display scope level if there are experiments
-			if (Object.keys(scopeLevelExperiments).length > 0) {
-				// Append Scope Label
-				experimentVariantContainer.append('div').attr('class', 'scopeLabel')
-					.text('Scope: ' + scope);
+        // Get possible Experiment Scope Levels
+        var scopeLevels = experiments.getScopeLevels();
 
-				// Cycle through all Parameters within scope level
-				Object.keys(scopeLevelExperiments).forEach(function (parameter) {
-					// Append Parameter Label
-					experimentVariantContainer.append('div').attr('class', 'paramLabel')
-						.text('Parameter: ' + parameter);
+        // Target Experiment Variant Selection Container
+        d3.select('#experimentParametersAndVariants').append('div').attr('id', 'expOptions');
+        var experimentVariantContainer = d3.select('#expOptions');
 
-					// Get experiment data (elementIds and variant values) for this parameter
-					var experimentData = scopeLevelExperiments[parameter];
-					
-					// Cycle through all ElementIds involved within parameter
-					experimentData.elementIds.forEach(function (elementId) {
-						// Append involved ElementId
-						experimentVariantContainer.append('div').attr('class', 'feedIdLabel')
-							.text('Feed Id: ' + elementId);
-					}, this);
+        // Cycle through all scope levels and display variants
+        scopeLevels.forEach(function (scope) {
+            // Get Experiments at target scope level
+            var scopeLevelExperiments = experiments.getAllExperimentScopeLevel(scope);
 
-					// Cycle through all variant values within parameter
-					experimentData.values.forEach(function (namedSource) {
-						// Create (input) value for variant selection
-						var value = {
-							scope : scope,
-							parameter : parameter,
-							variant : namedSource
-						};
+            // Display scope level if there are experiments
+            if (Object.keys(scopeLevelExperiments).length > 0) {
+                // Append Scope Label
+                experimentVariantContainer.append('div').attr('class', 'scopeLabel')
+                    .text('Scope: ' + scope);
 
-						// Append (input:checkbox)
-						var inputGrp = experimentVariantContainer.append('div');
-						inputGrp.append('input')
-							.attr({
-								'type':'checkbox', 
-								'value': JSON.stringify(value), 
-								'id': 'opt-'+namedSource, 
-								'class' : 'expOptionSelect'
-							});
-							
-						// Append corresponding Variant Label
-						inputGrp.append('label').attr('class', 'inputLabel')
-							.text(namedSource);
-					}, this); // variants
-				}, this); // parameters
-			} // If-block
-		}, this); // scopeLevels
-	};
+                // Cycle through all Parameters within scope level
+                Object.keys(scopeLevelExperiments).forEach(function (parameter) {
+                    // Append Parameter Label
+                    experimentVariantContainer.append('div').attr('class', 'paramLabel')
+                        .text('Parameter: ' + parameter);
+
+                    // Get experiment data (elementIds and variant values) for this parameter
+                    var experimentData = scopeLevelExperiments[parameter];
+
+                    // Cycle through all ElementIds involved within parameter
+                    experimentData.elementIds.forEach(function (elementId) {
+                        // Append involved ElementId
+                        experimentVariantContainer.append('div').attr('class', 'feedIdLabel')
+                            .text('Feed Id: ' + elementId);
+                    }, this);
+
+                    // Cycle through all variant values within parameter
+                    experimentData.values.forEach(function (namedSource) {
+                        // Create (input) value for variant selection
+                        var value = {
+                            scope : scope,
+                            parameter : parameter,
+                            variant : namedSource
+                        };
+
+                        // Append (input:checkbox)
+                        var inputGrp = experimentVariantContainer.append('div');
+                        inputGrp.append('input')
+                            .attr({
+                                'type':'checkbox',
+                                'value': JSON.stringify(value),
+                                'id': 'opt-'+namedSource,
+                                'class' : 'expOptionSelect'
+                            });
+
+                        // Append corresponding Variant Label
+                        inputGrp.append('label').attr('class', 'inputLabel')
+                            .text(namedSource);
+                    }, this); // variants
+                }, this); // parameters
+            } // If-block
+        }, this); // scopeLevels
+    };
 
     // Remove Experiment ElementNode variant selection options
     var _clearExperimentNodesVariantOptions = function () {
         d3.select('#expOptions').remove();
-    }
+    };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Mark Highlight Config
@@ -431,7 +463,7 @@ var Cartographer = function () {
             case 'umt':
             default:
                 return '-[\\s]*feedId:[\\s]*' + elementId + '[\\s]*$';
-        };
+        }
     };
 
     // 'Mark' highlighted portion of config and scroll to highlight
@@ -495,58 +527,58 @@ var Cartographer = function () {
     };
 
     // Shows pathway from target ElementId to its sources
-	var _showPathway = function (d, i) {
-		var selectedExperimentVariants = {};
-	
-		// Do we want to show all Pathways or just the selected variant Pathways	
-		if (d3.select('input#useExperiment').property('checked')) {
-			// Grab experiment options
-			var options = d3.selectAll('input.expOptionSelect');
+    var _showPathway = function (d, i) {
+        var selectedExperimentVariants = {};
 
-			// For each selected variant, grab corresponding sources for each ElementId
-			// involved for a given parameter to form a elementId to source hash
-			options[0].forEach(function (option) {
-				if (option.checked) {
-					// Get details of selected variant
-					var details = JSON.parse(option.value);
-		
-					// Get sources for parameter variant for all involved ElementIds
-					var sources = _assetData.flowchart.getAllExperiments()
-						.getSourceFeedIdsForScopeParameterVariant(
-							details.scope, 
-							details.parameter, 
-							details.variant
-						);
+        // Do we want to show all Pathways or just the selected variant Pathways
+        if (d3.select('input#useExperiment').property('checked')) {
+            // Grab experiment options
+            var options = d3.selectAll('input.expOptionSelect');
 
-					// Merge all 'sources'		
-					selectedExperimentVariants = Object.assign({}, selectedExperimentVariants, sources);				
-				}
-			}, this);
-		}
+            // For each selected variant, grab corresponding sources for each ElementId
+            // involved for a given parameter to form a elementId to source hash
+            options[0].forEach(function (option) {
+                if (option.checked) {
+                    // Get details of selected variant
+                    var details = JSON.parse(option.value);
 
-		// Which ElementNode are we targeting
-       	var elementId = d.getElement().getId()
+                    // Get sources for parameter variant for all involved ElementIds
+                    var sources = _assetData.flowchart.getAllExperiments()
+                        .getSourceFeedIdsForScopeParameterVariant(
+                            details.scope,
+                            details.parameter,
+                            details.variant
+                        );
 
-		// Get Pathway ElementIds from ElementNode
-		var pathway = _assetData.flowchart.getPathwayElementIds(elementId, selectedExperimentVariants);
-		
-		// Highlight Nodes
-		pathway.nodes.forEach(function (nodeId) {
-			d3.select(_generateAttrIdSelector(nodeId)).classed('outline', true);
-		}, this);
-			
-		// Highlight Edges
-		pathway.edges.forEach(function (edge) {
-			var edgeId = edge.getId(_assetData.flowchart.getEdgeGlue());
-			d3.select(_generateAttrIdSelector(edgeId)).classed('trace', true);			
-		}, this);
-	};
+                    // Merge all 'sources'
+                    selectedExperimentVariants = Object.assign({}, selectedExperimentVariants, sources);
+                }
+            }, this);
+        }
 
-	// Remove Pathway highlight
-	var _clearPathHighlight = function () {
-		d3.selectAll('.outline').classed('outline', false);
-		d3.selectAll('.trace').classed('trace', false);
-	};
+        // Which ElementNode are we targeting
+        var elementId = d.getElement().getId();
+
+        // Get Pathway ElementIds from ElementNode
+        var pathway = _assetData.flowchart.getPathwayElementIds(elementId, selectedExperimentVariants);
+
+        // Highlight Nodes
+        pathway.nodes.forEach(function (nodeId) {
+            d3.select(_generateAttrIdSelector(nodeId)).classed('outline', true);
+        }, this);
+
+        // Highlight Edges
+        pathway.edges.forEach(function (edge) {
+            var edgeId = edge.getId(_assetData.flowchart.getEdgeGlue());
+            d3.select(_generateAttrIdSelector(edgeId)).classed('trace', true);
+        }, this);
+    };
+
+    // Remove Pathway highlight
+    var _clearPathHighlight = function () {
+        d3.selectAll('.outline').classed('outline', false);
+        d3.selectAll('.trace').classed('trace', false);
+    };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Render: Minimap
@@ -624,8 +656,8 @@ var Cartographer = function () {
                 frame.call(drag);
 
                 // Render Minimap
-        		minimap.render = function () {
-		        	scale = zoom.scale();
+                minimap.render = function () {
+                    scale = zoom.scale();
 
                     // Calculate Minimap Group positioning
                     var realFlowchartGroupWidth = d3.select("#flowchartGroup").node().getBBox().width * _const.minimapScale;
@@ -637,7 +669,7 @@ var Cartographer = function () {
                     minimapGroup.attr("transform", "translate(" + realMiniMapGroupX + "," + realMiniMapGroupY + ")scale(" + _const.minimapScale + ")");
 
                     // Create Copy of flowchart group source and prepare minichart group
-        			var node = sourceGroup.node().cloneNode(true);
+                    var node = sourceGroup.node().cloneNode(true);
                     node.setAttribute('class', 'canvas_mini');
                     node.setAttribute('id', 'minichartGroup');
                     node.childNodes.forEach(function (element) { element.removeAttribute('id'); });
@@ -693,11 +725,11 @@ var Cartographer = function () {
             }
 
             // Set Minimap
-        	_assetData.minimap = minimap;
+            _assetData.minimap = minimap;
         }
 
-		return _assetData.minimap;
-	};
+        return _assetData.minimap;
+    };
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Render: (Plot) Flowchart
@@ -736,29 +768,29 @@ var Cartographer = function () {
     };
 
     // Plot Full Flowchart (and Minimap)
-    this.plot = function () {
-    	// Clear out any existing plot first
-    	_clearPlot();
-    
-    	// Get the Endpoint to start plotting from
-    	var endpointElementId = _getEndpointElementIdSelected();
-    
+    var _plot = function () {
+        // Clear out any existing plot first
+        _clearPlot();
+
+        // Get the Endpoint to start plotting from
+        var endpointElementId = _getEndpointElementIdSelected();
+
         // Get all D3 related data from the flowchart
         var d3Data = _assetData.flowchart.getD3Data(endpointElementId);
 
-		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // D3 Rendering Portions
         // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-		// Create SVG Element, Defs, and flowchartGroup for flowchart to be rendered in
-		// ---------------------------------------------------
+        // Create SVG Element, Defs, and flowchartGroup for flowchart to be rendered in
+        // ---------------------------------------------------
         var svg = d3.select('#flowchartStudio')
-			.append('svg')
-        		.classed("primary", true)
-				.attr("id", "primaryCanvas")
-				.attr("shape-rendering", "auto")
-				// Call Handler that allows for zooming and panning
-				.call(_getZoom());
+            .append('svg')
+            .classed("primary", true)
+            .attr("id", "primaryCanvas")
+            .attr("shape-rendering", "auto")
+            // Call Handler that allows for zooming and panning
+            .call(_getZoom());
 
         var defs = svg.append("defs")
             .attr("id", "primaryCanvasDefs");
@@ -768,7 +800,7 @@ var Cartographer = function () {
             .attr('id', 'flowchartGroup');
 
         // Render Elements
-		// ---------------------------------------------------
+        // ---------------------------------------------------
         var d3Nodes = flowchartGroup.selectAll("elementNode")
             .data(d3Data.nodes)
             .enter()
@@ -776,104 +808,104 @@ var Cartographer = function () {
 
         var d3NodesAttr = d3Nodes
             .attr("class", function (d) {
-				var nodeStyle = 'nodeDefaultStyle';
-           		switch (d.getNodeType()) {
-           			case 'placement':
-           				nodeStyle = 'nodePlacementStyle';
-           				break;
-           			case 'section':
-           				nodeStyle = 'nodeSectionStyle';
-           				break;
-           			case 'umt':
-           				nodeStyle = 'nodeUmtStyle';
-           				break;
-           			case 'source':
-           				nodeStyle = 'nodeSourceStyle';
-           				break;
-           			// Must be a Feed then ...
-           			case 'feed':
-           				var nodeClass = d.getNodeClass('class');
-		                if (nodeClass == 'ExperimentSwitchFilter') {
-							nodeStyle = ' nodeUmtStyle';
-						} else {
-							// Add PHP class as CSS class
-							nodeStyle += ' ' + nodeClass;
-						}
-           				break;
-           		}
-           		return 'elementNode ' + nodeStyle;
-			})
+                var nodeStyle = 'nodeDefaultStyle';
+                switch (d.getNodeType()) {
+                    case 'placement':
+                        nodeStyle = 'nodePlacementStyle';
+                        break;
+                    case 'section':
+                        nodeStyle = 'nodeSectionStyle';
+                        break;
+                    case 'umt':
+                        nodeStyle = 'nodeUmtStyle';
+                        break;
+                    case 'source':
+                        nodeStyle = 'nodeSourceStyle';
+                        break;
+                    // Must be a Feed then ...
+                    case 'feed':
+                        var nodeClass = d.getNodeClass('class');
+                        if (nodeClass == 'ExperimentSwitchFilter') {
+                            nodeStyle = ' nodeUmtStyle';
+                        } else {
+                            // Add PHP class as CSS class
+                            nodeStyle += ' ' + nodeClass;
+                        }
+                        break;
+                }
+                return 'elementNode ' + nodeStyle;
+            })
             .attr("x", function(d) { return d.getX(); })
             .attr("y", function(d) { return d.getY(); })
             .attr("width", function(d) { return d.getWidth(); })
             .attr("height", function(d) { return d.getHeight(); })
             .attr("id", function(d) { return d.getElement().getId(); })
             .on('mouseover', function (d, i) {
-				if (_useOnHover()) {            
-               		_showPathway(d, i);
-	               	_showMarkHighlighted(d, i);
-				}
+                if (_useOnHover()) {
+                    _showPathway(d, i);
+                    _showMarkHighlighted(d, i);
+                }
             })
             .on('mouseout', function () {
-				if (_useOnHover()) {            
-            		_clearPathHighlight();
-	            	_clearMarkHighlighted();
-				}
-            })
-			.on('click', function (d, i) {
-				if (_useOnClick()) {
+                if (_useOnHover()) {
                     _clearPathHighlight();
-    	        	_clearMarkHighlighted();
+                    _clearMarkHighlighted();
+                }
+            })
+            .on('click', function (d, i) {
+                if (_useOnClick()) {
+                    _clearPathHighlight();
+                    _clearMarkHighlighted();
 
-               		_showPathway(d, i);
-	               	_showMarkHighlighted(d, i);
-				}
-			});
+                    _showPathway(d, i);
+                    _showMarkHighlighted(d, i);
+                }
+            });
 
-    /*
-        // Render Edge Lines
-		// ---------------------------------------------------
-        var lines = flowchartGroup.selectAll("line")
-            .data(d3Data.edges)
-            .enter()
-            .append("line");
+        /*
+         // Render Edge Lines
+         // ---------------------------------------------------
+         var lines = flowchartGroup.selectAll("line")
+         .data(d3Data.edges)
+         .enter()
+         .append("line");
 
-        var linesAttr = lines
-            .classed("edgeLine", true)
-            .attr("x1", function (d) { return d.x1; })
-            .attr("y1", function (d) { return d.y1; })
-            .attr("x2", function (d) { return d.x2; })
-            .attr("y2", function (d) { return d.y2; })
-            .attr("marker-end", "url(#arrowHead)");
-    */
+         var linesAttr = lines
+         .classed("edgeLine", true)
+         .attr("x1", function (d) { return d.x1; })
+         .attr("y1", function (d) { return d.y1; })
+         .attr("x2", function (d) { return d.x2; })
+         .attr("y2", function (d) { return d.y2; })
+         .attr("marker-end", "url(#arrowHead)");
+         */
 
         // Render Edge Diagonals
-		// ---------------------------------------------------
+        // ---------------------------------------------------
         var diagonals = flowchartGroup.selectAll("edgeDiagonal")
             .data(d3Data.diagonals)
             .enter()
             .append("path")
-                .classed("edgeDiagonal", true)
-                .attr("d", d3.svg.diagonal())
-                .attr("marker-end", "url(#arrowHead)")
-                .attr("id", function (d) { return d.edgeId; });
+            .classed("edgeDiagonal", true)
+            .attr("d", d3.svg.diagonal())
+            .attr("marker-end", "url(#arrowHead)")
+            .attr("id", function (d) { return d.edgeId; });
 
         // Render Element Class Name Labels
-		// ---------------------------------------------------
+        // ---------------------------------------------------
         var classNameLabels = flowchartGroup.selectAll("classNameLabel")
             .data(d3Data.classNameLabels)
             .enter()
             .append("text");
 
         var classNameLabelsAttr = classNameLabels
-        	.classed("classNameLabel", true)
+            .classed("classNameLabel", true)
             .attr("x", function (d) { return (d.x); })
             .attr("y", function (d) { return (d.y); })
             .attr("dy", "3px")
             .text(function (d) { return d.className; });
-            
+
         // Render Element Id Labels
-		// ---------------------------------------------------
+        // ---------------------------------------------------
         var elementIdLabels = flowchartGroup.selectAll("elementIdLabel")
             .data(d3Data.elementIdLabels)
             .enter()
@@ -889,7 +921,7 @@ var Cartographer = function () {
             .text(function (d) { return d.elementId; });
 
         // Defining Markers (Arrow Heads)
-		// ---------------------------------------------------
+        // ---------------------------------------------------
         var marker = defs.append("marker")
             .attr({
                 "id": "arrowHead",
@@ -901,75 +933,75 @@ var Cartographer = function () {
                 "orient": "auto"
             })
             .append("path")
-                .attr("d", "M0,-5L10,0L0,5");
+            .attr("d", "M0,-5L10,0L0,5");
 
-		// Defining Gradients
-		// ---------------------------------------------------
-		function createFill(defs, gradientConfig) {
-        	var elementFill = defs.append('linearGradient')
-	            .attr('id', gradientConfig.gradientId)
-    	        .attr('x1', 0)
-        	    .attr('y1', 0)
-            	.attr('x2', 0)
-	            .attr('y2', 1);			
+        // Defining Gradients
+        // ---------------------------------------------------
+        function createFill(defs, gradientConfig) {
+            var elementFill = defs.append('linearGradient')
+                .attr('id', gradientConfig.gradientId)
+                .attr('x1', 0)
+                .attr('y1', 0)
+                .attr('x2', 0)
+                .attr('y2', 1);
 
-    	    // Create the stops of the main gradient. Each stop will be assigned
-	        // a class to style the stop using CSS.
-	            
-	        // Top Stop color
-			elementFill.append('stop')
-	            .attr('class', gradientConfig.topClass)
-    	        .attr('offset', '0');
+            // Create the stops of the main gradient. Each stop will be assigned
+            // a class to style the stop using CSS.
 
-        /*
-			// Middle Stop color
-			elementFill.append('stop')
-    	       .attr('class', 'stop-core')
-        	   .attr('offset', '0.5');
-        */
+            // Top Stop color
+            elementFill.append('stop')
+                .attr('class', gradientConfig.topClass)
+                .attr('offset', '0');
 
-			// Bottom Stop color
-	        elementFill.append('stop')
-    	        .attr('class', gradientConfig.bottomClass)
-        		.attr('offset', '1');
-	            
-	        return elementFill;    
-		}
+            /*
+             // Middle Stop color
+             elementFill.append('stop')
+             .attr('class', 'stop-core')
+             .attr('offset', '0.5');
+             */
+
+            // Bottom Stop color
+            elementFill.append('stop')
+                .attr('class', gradientConfig.bottomClass)
+                .attr('offset', '1');
+
+            return elementFill;
+        }
 
         // Gradient - Default
-        var gradientDefault = createFill(defs, { 
-        		gradientId : 'gradientDefault',
-        		topClass : 'nodeDefault-StopTop',
-        		bottomClass : 'nodeDefault-StopBottom'
-        	});
+        var gradientDefault = createFill(defs, {
+            gradientId : 'gradientDefault',
+            topClass : 'nodeDefault-StopTop',
+            bottomClass : 'nodeDefault-StopBottom'
+        });
 
         // Gradient - Source
-        var gradientSource = createFill(defs, { 
-        		gradientId : 'gradientSource',
-        		topClass : 'nodeSource-StopTop',
-        		bottomClass : 'nodeSource-StopBottom'
-        	});
+        var gradientSource = createFill(defs, {
+            gradientId : 'gradientSource',
+            topClass : 'nodeSource-StopTop',
+            bottomClass : 'nodeSource-StopBottom'
+        });
 
         // Gradient - Umt
-        var gradientUmt = createFill(defs, { 
-        		gradientId : 'gradientUmt',
-        		topClass : 'nodeUmt-StopTop',
-        		bottomClass : 'nodeUmt-StopBottom'
-        	});
+        var gradientUmt = createFill(defs, {
+            gradientId : 'gradientUmt',
+            topClass : 'nodeUmt-StopTop',
+            bottomClass : 'nodeUmt-StopBottom'
+        });
 
         // Gradient - Placement
-        var gradientPlacement = createFill(defs, { 
-        		gradientId : 'gradientPlacement',
-        		topClass : 'nodePlacement-StopTop',
-        		bottomClass : 'nodePlacement-StopBottom'
-        	});
-        
+        var gradientPlacement = createFill(defs, {
+            gradientId : 'gradientPlacement',
+            topClass : 'nodePlacement-StopTop',
+            bottomClass : 'nodePlacement-StopBottom'
+        });
+
         // Gradient - Section
-        var gradientSection = createFill(defs, { 
-        		gradientId : 'gradientSection',
-        		topClass : 'nodeSection-StopTop',
-        		bottomClass : 'nodeSection-StopBottom'
-        	});
+        var gradientSection = createFill(defs, {
+            gradientId : 'gradientSection',
+            topClass : 'nodeSection-StopTop',
+            bottomClass : 'nodeSection-StopBottom'
+        });
 
         // Adjust SVG Container to account for Console
         // ---------------------------------------------------
@@ -985,11 +1017,11 @@ var Cartographer = function () {
         _getMinimap().render();
 
         // Center the Plot in Viewable area
-        this.centerPlot();
+        _centerPlot();
     };
 
     // Centers (Resets) Zoom on Flowchart
-    this.centerPlot = function () {
+    var _centerPlot = function () {
         // The original container that the zoom handler was associated with
         var svg = d3.select('svg#primaryCanvas');
 
@@ -1027,7 +1059,15 @@ var Cartographer = function () {
         svg.transition().duration(1500).call(zoom.event);
     };
 
-    // (Public) Removes (Plot) Flowchart
+    // (Public Plot Methods) Flowchart
+    this.plot = function () {
+        _plot();
+    };
+
+    this.centerPlot = function () {
+        _centerPlot();
+    };
+
     this.clearPlot = function () {
         _clearPlot();
     };
@@ -1036,6 +1076,6 @@ var Cartographer = function () {
     // Initialize Cartographer
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	// Init Cartographer
-	_init();
+    // Init Cartographer
+    _init();
 };
